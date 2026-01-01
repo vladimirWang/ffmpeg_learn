@@ -9,7 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": [],
+            "args": [
+                "/Users/wangfernando/ffmpeg_workspace/ffmpeg_demo/1.mp4",
+                "1.aac"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
