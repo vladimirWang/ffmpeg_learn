@@ -4,7 +4,6 @@
 #include <libavformat/avformat.h>
 
 int main(int argc, char *argv[]) {
-    
     // 1. 处理参数
     char * src;
     char * dst;
@@ -19,6 +18,7 @@ int main(int argc, char *argv[]) {
     AVStream *inStream = NULL;
     
     av_log_set_level(AV_LOG_DEBUG);
+    av_log(NULL, AV_LOG_INFO, "extra audio start\n");
     
     if (argc< 3) {
         av_log(NULL, AV_LOG_INFO, "argv count is %s\n", "less than necessary");
