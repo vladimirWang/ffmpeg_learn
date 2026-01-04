@@ -88,12 +88,12 @@ int main(int argc, char *argv[]) {
     }
     // 8. 从源文件中读到音频，视频，字幕数据到目的文件中
     while(av_read_frame(pFmtCtx, &pkt) >=0) {
-        AVStream *inStream = pFmtCtx->streams[pkt.stream_index];
-        if (pkt.stream_index<0) {
+        int mapped_index = stream_map[pkt.stream_index];
+        if (mapped_index<0) {
             av_packet_unref(&pkt);
             continue;
         }
-        int mapped_index = stream_map[pkt.stream_index];
+        AVStream *inStream = pFmtCtx->streams[pkt.stream_index];
         AVStream *outStream = oFmtCtx->streams[mapped_index];
         pkt.stream_index = mapped_index;
         // 改变时间戳
