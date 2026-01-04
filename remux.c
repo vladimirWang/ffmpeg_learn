@@ -52,8 +52,8 @@ int main(int argc, char *argv[]) {
         AVStream *inStream = pFmtCtx->streams[i];
         AVCodecParameters *inCodecPar = inStream->codecpar;
         if (inCodecPar->codec_type != AVMEDIA_TYPE_AUDIO 
-            || inCodecPar->codec_type != AVMEDIA_TYPE_VIDEO 
-            || inCodecPar->codec_type != AVMEDIA_TYPE_SUBTITLE) {
+            && inCodecPar->codec_type != AVMEDIA_TYPE_VIDEO 
+            && inCodecPar->codec_type != AVMEDIA_TYPE_SUBTITLE) {
                 stream_map[i] = -1;
                 continue;
         }
@@ -88,13 +88,14 @@ int main(int argc, char *argv[]) {
     }
     // 8. 从源文件中读到音频，视频，字幕数据到目的文件中
     while(av_read_frame(pFmtCtx, &pkt) >=0) {
+        AVStream *inStream = pFmtCtx->streams[pkt.stream_index];
         if (pkt.stream_index<0) {
             av_packet_unref(&pkt);
             continue;
         }
-        AVStream *inStream = pFmtCtx->streams[pkt.stream_index];
-        AVStream *outStream = oFmtCtx->streams[pkt.stream_index];
-        pkt.stream_index = stream_map[pkt.stream_index];
+        int mapped_index = stream_map[pkt.stream_index];
+        AVStream *outStream = oFmtCtx->streams[mapped_index];
+        pkt.stream_index = mapped_index;
         // 改变时间戳
         // av_packet_rescale_ts 相当于老的api中的设置pts, dts, duration, stream_index
         av_packet_rescale_ts(&pkt, inStream->time_base, outStream->time_base);
