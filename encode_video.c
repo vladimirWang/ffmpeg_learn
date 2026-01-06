@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <libavutil/log.h>
 #include <libavutil/opt.h>
 #include <libavutil/avutil.h>
@@ -12,8 +13,8 @@ static int encode(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, FILE *out)
     }
 
     while(ret >= 0) {
-        avcodec_receive_packet(ctx, pkt);
-        if (ret == AVERROR(EAGAIN) || ret ==AVERROR_EOF) {
+        ret = avcodec_receive_packet(ctx, pkt);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
             return 0;
         } else if (ret < 0) {
             return -1;
@@ -49,15 +50,23 @@ int main(int argc, char* argv[]) {
     char * codecname = argv[2];
     char * dst = argv[1];
 
+    // 初始化变量
+    AVCodecContext *ctx = NULL;
+    AVFrame *frame = NULL;
+    AVPacket *pkt = NULL;
+    FILE *f = NULL;
+
     // 2 查找编码器
     const AVCodec *codec = avcodec_find_encoder_by_name(codecname);
     if (!codec) {
+        av_log(NULL, AV_LOG_ERROR, "codec not found: %s\n", codecname);
         goto __ERROR;
     }
     // 3 创建编码器上下文
-    AVCodecContext *ctx = avcodec_alloc_context3(codec);
+    ctx = avcodec_alloc_context3(codec);
     if (!ctx) {
         av_log(NULL, AV_LOG_ERROR, "NO MEMORY\n");
+        goto __ERROR;
     }
     // 4 设置编码器参数
     ctx->width = 640;
@@ -79,13 +88,13 @@ int main(int argc, char* argv[]) {
         goto __ERROR;
     }
     // 6 创建输出文件
-    FILE* f = fopen(dst, "wb");
+    f = fopen(dst, "wb");
     if (!f) {
         av_log(NULL, AV_LOG_ERROR, "dont open file: %s\n", dst);
         goto __ERROR;
     }
     // 7 创建AVFrame, 保存视频原始数据, frame是存储数据的外壳
-    AVFrame *frame = av_frame_alloc();
+    frame = av_frame_alloc();
     if (!frame) {
         av_log(NULL, AV_LOG_ERROR, "no memory to alloc frame\n");
         goto __ERROR;
@@ -102,7 +111,7 @@ int main(int argc, char* argv[]) {
         goto __ERROR;
     }
     // 8 创建AVPacket, 保存编码后的视频帧
-    AVPacket *pkt = av_packet_alloc();
+    pkt = av_packet_alloc();
     if (!pkt) {
         av_log(NULL, AV_LOG_ERROR, "no memory to alloc pkt\n");
         goto __ERROR;
